@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id      String  @id @default(cuid())
+  name    String
+  entries Entry[]
+
+  @@index([name])
+}
+
+model Timesheet {
+  id        String   @id @default(cuid())
+  year      Int
+  month     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  entries   Entry[]
+
+  @@unique([year, month])
+}
+
+model Entry {
+  id          String   @id @default(cuid())
+  timesheetId String
+  employeeId  String
+  date        String   // YYYY-MM-DD
+  dayHours    Float
+  nightHours  Float
+
+  timesheet Timesheet @relation(fields: [timesheetId], references: [id], onDelete: Cascade)
+  employee  Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([timesheetId, employeeId, date])
+  @@index([timesheetId])
+  @@index([employeeId])
+  @@index([date])
+}
